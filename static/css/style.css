@@ -1,0 +1,252 @@
+/* ==========================================================================
+   AI Student Risk System - Custom CSS Design System
+   ========================================================================== */
+
+:root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* Theme Palette */
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-subtle: #eff6ff;
+    
+    --success-color: #10b981;
+    --success-subtle: #ecfdf5;
+
+    --warning-color: #f59e0b;
+    --warning-subtle: #fffbeb;
+
+    --danger-color: #ef4444;
+    --danger-subtle: #fef2f2;
+
+    --dark-surface: #0f172a;
+    --card-border: #e2e8f0;
+    --body-bg: #f8fafc;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--body-bg);
+    color: #1e293b;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+}
+
+.content-wrapper {
+    flex: 1 0 auto;
+}
+
+/* Navbar Custom Styling */
+.main-navbar {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 1.1rem;
+}
+
+.navbar .nav-link {
+    font-weight: 500;
+    font-size: 0.92rem;
+    padding: 0.5rem 0.85rem !important;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.navbar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff !important;
+}
+
+.navbar .nav-link.active {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+/* Metric Cards */
+.stat-card {
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+/* Badges for Risk Levels */
+.risk-badge {
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.risk-badge-low {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.risk-badge-medium {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.risk-badge-high {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.risk-badge-none {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+/* Custom Table Design */
+.custom-table {
+    vertical-align: middle;
+}
+
+.custom-table thead th {
+    background-color: #f1f5f9;
+    color: #334155;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 2px solid #cbd5e1;
+    padding: 0.75rem 1rem;
+}
+
+.custom-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.custom-table td {
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Code & Monospace Badges */
+.mono-badge {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+}
+
+/* DSA Visualizer Cards */
+.dsa-visualizer-box {
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 8px;
+    padding: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.dsa-node {
+    display: inline-flex;
+    align-items: center;
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    margin: 4px;
+    color: #38bdf8;
+}
+
+.dsa-node-arrow {
+    color: #94a3b8;
+    margin: 0 4px;
+    font-weight: bold;
+}
+
+/* Confidence Progress Bar */
+.confidence-bar-container {
+    height: 8px;
+    background-color: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.confidence-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+/* Academic Recommendation List */
+.recommendation-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.recommendation-list li {
+    position: relative;
+    padding-left: 1.75rem;
+    margin-bottom: 0.65rem;
+    font-size: 0.92rem;
+    color: #334155;
+}
+
+.recommendation-list li::before {
+    content: "\F26E";
+    font-family: "bootstrap-icons";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #2563eb;
+    font-size: 1rem;
+}
+
+/* Callout Box */
+.academic-disclaimer-box {
+    border-left: 4px solid #f59e0b;
+    background-color: #fffbeb;
+    padding: 0.85rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.88rem;
+    color: #78350f;
+}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Student - ' + student.student_id if is_edit else 'Add New Student' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-7">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <a href="{{ url_for('list_students') }}" class="text-decoration-none small text-muted d-inline-flex align-items-center gap-1 mb-1">
+                    <i class="bi bi-arrow-left"></i> Back to Student Directory
+                </a>
+                <h1 class="h3 fw-bold mb-0 text-dark">
+                    {{ 'Update Student Record: ' + student.student_id if is_edit else 'Enroll New Student' }}
+                </h1>
+            </div>
+            {% if is_edit %}
+                <span class="mono-badge fs-6">{{ student.student_id }}</span>
+            {% endif %}
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" action="{{ url_for('edit_student_page', student_id=student.student_id) if is_edit else url_for('create_student_page') }}">
+                    
+                    <!-- Student Full Name -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-semibold">Student Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="e.g. Rahul Sharma" value="{{ student.name if student else '' }}">
+                        <div class="form-text">Must be at least 2 characters long.</div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- Attendance Percentage -->
+                        <div class="col-12 col-md-6">
+                            <label for="attendance" class="form-label fw-semibold">Attendance Percentage (%) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" step="0.1" min="0" max="100" class="form-control" id="attendance" name="attendance" required placeholder="0.0 - 100.0" value="{{ student.attendance if student else '' }}">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <div class="form-text">University minimum target: 75%</div>
+                        </div>
+
+                        <!-- Internal Marks -->
+                        <div class="col-12 col-md-6">
+                            <label for="internal_marks" class="form-label fw-semibold">Internal Assessment Marks <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" step="0.1" min="0" max="100" class="form-control" id="internal_marks" name="internal_marks" required placeholder="0.0 - 100.0" value="{{ student.internal_marks if student else '' }}">
+                                <span class="input-group-text">/ 100</span>
+                            </div>
+                            <div class="form-text">Mid-term and continuous evaluation average.</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- Assignment Marks -->
+                        <div class="col-12 col-md-6">
+                            <label for="assignment_marks" class="form-label fw-semibold">Assignment Marks <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" step="0.1" min="0" max="100" class="form-control" id="assignment_marks" name="assignment_marks" required placeholder="0.0 - 100.0" value="{{ student.assignment_marks if student else '' }}">
+                                <span class="input-group-text">/ 100</span>
+                            </div>
+                            <div class="form-text">Practical and coursework tasks.</div>
+                        </div>
+
+                        <!-- Previous Academic Percentage -->
+                        <div class="col-12 col-md-6">
+                            <label for="previous_percentage" class="form-label fw-semibold">Previous Academic Percentage (%) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" step="0.1" min="0" max="100" class="form-control" id="previous_percentage" name="previous_percentage" required placeholder="0.0 - 100.0" value="{{ student.previous_percentage if student else '' }}">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <div class="form-text">Prior semester aggregate or 12th standard.</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <!-- Daily Study Hours -->
+                        <div class="col-12 col-md-6">
+                            <label for="study_hours" class="form-label fw-semibold">Daily Study Hours <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" step="0.1" min="0" max="24" class="form-control" id="study_hours" name="study_hours" required placeholder="0.0 - 24.0" value="{{ student.study_hours if student else '' }}">
+                                <span class="input-group-text">hrs/day</span>
+                            </div>
+                            <div class="form-text">Average independent study outside classroom.</div>
+                        </div>
+
+                        <!-- Backlog / Failed Subjects -->
+                        <div class="col-12 col-md-6">
+                            <label for="failed_subjects" class="form-label fw-semibold">Pending Backlogs (Failed Subjects) <span class="text-danger">*</span></label>
+                            <input type="number" min="0" max="20" class="form-control" id="failed_subjects" name="failed_subjects" required placeholder="0 or higher" value="{{ student.failed_subjects if student else 0 }}">
+                            <div class="form-text">Number of uncleared subjects.</div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic helper preview -->
+                    <div class="p-3 bg-light rounded-3 border mb-4 d-flex justify-content-between align-items-center">
+                        <span class="small text-muted"><i class="bi bi-calculator me-1"></i> Live Calculation Helper</span>
+                        <span id="academic-composite-preview" class="badge bg-secondary">Estimated Academic Index: --</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('list_students') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+                            <i class="bi bi-save me-1"></i> {{ 'Save Changes' if is_edit else 'Register Student' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

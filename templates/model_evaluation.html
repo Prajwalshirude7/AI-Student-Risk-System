@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}ML Model Evaluation & Performance{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-dark">Decision Tree Model Evaluation & Verification</h1>
+        <p class="text-muted small mb-0">Empirical validation metrics computed using Stratified 80/20 Train-Test split on synthetic academic records.</p>
+    </div>
+    <div>
+        <form action="{{ url_for('retrain_model_action') }}" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm" onclick="return confirm('Retrain Decision Tree model on students.csv?');">
+                <i class="bi bi-arrow-repeat"></i> Retrain Model
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Evaluation Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card p-3 h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Test Accuracy</div>
+            <div class="h2 fw-bold text-primary mb-0 mt-1">
+                {{ ((metadata.metrics.accuracy * 100)|round(1)) if metadata else 'N/A' }}%
+            </div>
+            <small class="text-muted">Stratified test split</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card p-3 h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Macro Precision</div>
+            <div class="h2 fw-bold text-dark mb-0 mt-1">
+                {{ metadata.metrics.precision_macro if metadata else 'N/A' }}
+            </div>
+            <small class="text-muted">Unweighted class mean</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card p-3 h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Macro Recall</div>
+            <div class="h2 fw-bold text-dark mb-0 mt-1">
+                {{ metadata.metrics.recall_macro if metadata else 'N/A' }}
+            </div>
+            <small class="text-muted">Sensitivity across classes</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card p-3 h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Macro F1-Score</div>
+            <div class="h2 fw-bold text-success mb-0 mt-1">
+                {{ metadata.metrics.f1_macro if metadata else 'N/A' }}
+            </div>
+            <small class="text-muted">Harmonic mean of P & R</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Feature Importances -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-bar-chart-fill text-primary"></i> Decision Tree Feature Importances
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="featureImportanceChart"></canvas>
+                </div>
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm small mb-0">
+                        <thead class="table-light"><tr><th>Feature Name</th><th class="text-end">Gini Importance</th></tr></thead>
+                        <tbody>
+                            {% if metadata and metadata.feature_importances %}
+                                {% for feat, imp in metadata.feature_importances.items() %}
+                                <tr>
+                                    <td><code>{{ feat }}</code></td>
+                                    <td class="text-end fw-semibold">{{ imp }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confusion Matrix -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-grid-3x3-gap-fill text-primary"></i> Multi-Class Confusion Matrix
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small">
+                    Evaluates classification accuracy across rows (Ground Truth) and columns (Predicted Class) on the 20% stratified test partition.
+                </p>
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Actual \ Predicted</th>
+                                <th>Low Risk</th>
+                                <th>Medium Risk</th>
+                                <th>High Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if metadata and metadata.confusion_matrix %}
+                                {% set labels = metadata.confusion_matrix.labels %}
+                                {% set cm = metadata.confusion_matrix.matrix %}
+                                {% for i in range(3) %}
+                                <tr>
+                                    <th class="table-light text-start">{{ labels[i] }}</th>
+                                    {% for j in range(3) %}
+                                        <td class="{% if i == j %}bg-success bg-opacity-25 fw-bold text-success{% else %}{% if cm[i][j] > 0 %}bg-danger bg-opacity-10 text-danger{% endif %}{% endif %}">
+                                            {{ cm[i][j] }}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 small mt-3">
+                    <strong>Model Hyperparameters:</strong>
+                    <ul class="mb-0 ps-3 mt-1 text-muted">
+                        <li>Algorithm: <code>DecisionTreeClassifier</code></li>
+                        <li>Max Depth: <code>{{ metadata.parameters.max_depth if metadata else 6 }}</code></li>
+                        <li>Min Samples Split: <code>{{ metadata.parameters.min_samples_split if metadata else 8 }}</code></li>
+                        <li>Splitting Criterion: <code>Gini Impurity</code></li>
+                        <li>Last Trained: <code>{{ metadata.trained_at if metadata else 'N/A' }}</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ethical Academic Notice -->
+<div class="academic-disclaimer-box mb-4">
+    <div class="d-flex align-items-center gap-2 fw-bold text-warning-emphasis mb-1">
+        <i class="bi bi-shield-exclamation fs-5"></i> Academic Verification & Ethical Transparency Notice
+    </div>
+    <p class="mb-0">
+        {{ metadata.disclaimer if metadata else 'Model results demonstrate ML implementation using synthetic educational heuristics. Not validated for real-world academic risk assessment.' }}
+        Train/test split integrity was maintained without data leakage, using a fixed random seed (42) and stratified class representation.
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ctx = document.getElementById('featureImportanceChart');
+    if (ctx) {
+        {% if metadata and metadata.feature_importances %}
+            const labels = {{ metadata.feature_importances.keys()|list|tojson }};
+            const dataVals = {{ metadata.feature_importances.values()|list|tojson }};
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Gini Importance',
+                        data: dataVals,
+                        backgroundColor: 'rgba(37, 99, 235, 0.8)',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        {% endif %}
+    }
+});
+</script>
+{% endblock %}

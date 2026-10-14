@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Audit History{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-dark">Risk Prediction Audit Log</h1>
+        <p class="text-muted small mb-0">Persistent log of all AI diagnostic inferences performed by academic counselors and mentors.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('predict_page') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-cpu-fill"></i> New Diagnostic Inference
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark">
+            Past Inference History <span class="badge bg-primary bg-opacity-10 text-primary ms-1">{{ history|length }} recorded</span>
+        </h6>
+        <span class="text-muted small">Persistent SQLite Log</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table custom-table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Student / Subject</th>
+                        <th>Attendance</th>
+                        <th>Internals</th>
+                        <th>Assignments</th>
+                        <th>Backlogs</th>
+                        <th>Predicted Category</th>
+                        <th>Confidence</th>
+                        <th>Logged At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if history %}
+                        {% for row in history %}
+                        <tr>
+                            <td><span class="mono-badge">#{{ row.id }}</span></td>
+                            <td>
+                                <div class="fw-semibold text-dark">{{ row.student_name }}</div>
+                                <small class="text-muted">{{ row.student_id }}</small>
+                            </td>
+                            <td>{{ row.attendance }}%</td>
+                            <td>{{ row.internal_marks }}/100</td>
+                            <td>{{ row.assignment_marks }}/100</td>
+                            <td>
+                                {% if row.failed_subjects > 0 %}
+                                    <span class="badge bg-danger rounded-pill">{{ row.failed_subjects }}</span>
+                                {% else %}
+                                    <span class="badge bg-light text-secondary">0</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if row.predicted_risk == 'High Risk' %}
+                                    <span class="risk-badge risk-badge-high">High Risk</span>
+                                {% elif row.predicted_risk == 'Medium Risk' %}
+                                    <span class="risk-badge risk-badge-medium">Medium Risk</span>
+                                {% else %}
+                                    <span class="risk-badge risk-badge-low">Low Risk</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="fw-bold text-dark">{{ (row.confidence_score * 100)|round(1) }}%</span>
+                            </td>
+                            <td class="text-muted small">
+                                {{ row.created_at }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="bi bi-clock-history fs-1 d-block mb-2 text-secondary"></i>
+                                <h6 class="fw-semibold">No predictions logged yet</h6>
+                                <p class="small mb-3">Execute your first risk inference from the Predict Risk tab to start logging diagnostics.</p>
+                                <a href="{{ url_for('predict_page') }}" class="btn btn-sm btn-primary">Go to Predictor</a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

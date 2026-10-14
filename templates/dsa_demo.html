@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}System Engine & In-Memory Diagnostics{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h1 class="h3 fw-bold mb-1 text-dark">In-Memory Engine & Verification Console</h1>
+            <p class="text-muted small mb-0">Live architectural metrics: L1 Hash Table caching, Binary Search Tree index, FIFO prediction buffer, and LIFO transaction stack.</p>
+        </div>
+        <span class="badge bg-primary px-3 py-2 fs-7"><i class="bi bi-cpu me-1"></i> In-Memory Engine Active</span>
+    </div>
+</div>
+
+<!-- DSA Tabs -->
+<ul class="nav nav-pills mb-4 gap-2 bg-white p-2 rounded-3 shadow-sm" id="dsaTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold" id="tab-hashtable" data-bs-toggle="pill" data-bs-target="#content-hashtable" type="button" role="tab">
+            <i class="bi bi-hash me-1"></i> 1. Custom Hash Table
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="tab-bst" data-bs-toggle="pill" data-bs-target="#content-bst" type="button" role="tab">
+            <i class="bi bi-diagram-3 me-1"></i> 2. Binary Search Tree
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="tab-stack" data-bs-toggle="pill" data-bs-target="#content-stack" type="button" role="tab">
+            <i class="bi bi-layers me-1"></i> 3. Stack (Undo Engine)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="tab-queue" data-bs-toggle="pill" data-bs-target="#content-queue" type="button" role="tab">
+            <i class="bi bi-distribute-vertical me-1"></i> 4. Queue (FIFO Buffer)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="tab-linkedlist" data-bs-toggle="pill" data-bs-target="#content-linkedlist" type="button" role="tab">
+            <i class="bi bi-link-45deg me-1"></i> 5. Singly Linked List
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="tab-array" data-bs-toggle="pill" data-bs-target="#content-array" type="button" role="tab">
+            <i class="bi bi-sort-down me-1"></i> 6. Array & QuickSort
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="dsaTabsContent">
+
+    <!-- 1. HASH TABLE TAB -->
+    <div class="tab-pane fade show active" id="content-hashtable" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-12 col-lg-5">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark">O(1) Hash Table Student Lookup</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted small">
+                            Demonstrates our custom Separate Chaining Hash Table using polynomial rolling hashing and automatic capacity doubling at 0.75 load factor.
+                        </p>
+                        <form method="POST" action="{{ url_for('dsa_demo_action', structure='hash_table') }}">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Enter Student ID to Lookup</label>
+                                <input type="text" name="student_id" class="form-control" placeholder="e.g. STU-1001" required value="{{ demo_results.hash_table.searched_id if demo_results.get('hash_table') else 'STU-1001' }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Perform Hash Table Search</button>
+                        </form>
+
+                        <div class="mt-4 p-3 bg-light rounded-3 small">
+                            <h6 class="fw-bold mb-2">Hash Table Metrics:</h6>
+                            <ul class="list-unstyled mb-0 text-muted">
+                                <li>Bucket Capacity: <strong>{{ ht_stats.capacity }}</strong></li>
+                                <li>Stored Entries: <strong>{{ ht_stats.count }}</strong></li>
+                                <li>Current Load Factor: <strong>{{ ht_stats.load_factor|round(3) }}</strong></li>
+                                <li>Collision Resolution: <strong>Separate Chaining</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark">Lookup Result & Complexity Proof</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if demo_results.get('hash_table') %}
+                            {% set res = demo_results.hash_table %}
+                            <div class="alert {% if res.found %}alert-success{% else %}alert-warning{% endif %} d-flex align-items-center gap-2 mb-3">
+                                <i class="bi bi-clock-history"></i>
+                                <span>Lookup executed in <strong>{{ res.execution_time_ms }} ms</strong></span>
+                            </div>
+                            {% if res.found %}
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <div class="fw-bold text-dark fs-5">{{ res.student.name }}</div>
+                                    <span class="mono-badge">{{ res.student.student_id }}</span> &bull; 
+                                    Attendance: {{ res.student.attendance }}% &bull; 
+                                    Internals: {{ res.student.internal_marks }}/100 &bull; 
+                                    Risk: {{ res.student.predicted_risk }}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Student ID not found in current Hash Table buckets.</p>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-4 text-muted">
+                                Search a student ID on the left to test the O(1) custom Hash Table.
+                            </div>
+                        {% endif %}
+
+                        <div class="table-responsive mt-4">
+                            <table class="table table-bordered small mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Operation</th>
+                                        <th>Average Time</th>
+                                        <th>Worst Time (Collisions)</th>
+                                        <th>Space Complexity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Insert</td><td>O(1)</td><td>O(N)</td><td>O(N)</td></tr>
+                                    <tr><td>Search (Key)</td><td>O(1)</td><td>O(N)</td><td>O(1)</td></tr>
+                                    <tr><td>Delete</td><td>O(1)</td><td>O(N)</td><td>O(1)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. BST TAB -->
+    <div class="tab-pane fade" id="content-bst" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-12 col-lg-5">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark">Binary Search Tree: Range & Rank Query</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted small">
+                            Demonstrates our Binary Search Tree indexing student records by academic score, enabling ordered In-order traversal and O(K + log N) Range Search.
+                        </p>
+                        <form method="POST" action="{{ url_for('dsa_demo_action', structure='bst') }}">
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">Min Score</label>
+                                    <input type="number" step="0.5" name="min_score" class="form-control" value="{{ demo_results.bst.min_score if demo_results.get('bst') else '40' }}" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">Max Score</label>
+                                    <input type="number" step="0.5" name="max_score" class="form-control" value="{{ demo_results.bst.max_score if demo_results.get('bst') else '70' }}" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Execute BST Range Search</button>
+                        </form>
+
+                        <div class="mt-4 p-3 bg-light rounded-3 small">
+                            <h6 class="fw-bold mb-1">Tree Statistics:</h6>
+                            <div>Indexed Records in Tree: <strong>{{ bst_count }}</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark">BST Traversal Results</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if demo_results.get('bst') %}
+                            {% set res = demo_results.bst %}
+                            <div class="alert alert-success d-flex justify-content-between align-items-center mb-3">
+                                <span>Found <strong>{{ res.matching_count }}</strong> students in range [{{ res.min_score }}, {{ res.max_score }}]</span>
+                                <small>Time: <strong>{{ res.execution_time_ms }} ms</strong></small>
+                            </div>
+                            <div style="max-height: 250px; overflow-y: auto;" class="border rounded p-2">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>Student ID</th><th>Name</th><th>Score</th><th>Risk</th></tr></thead>
+                                    <tbody>
+                                        {% for s in res.students %}
+                                        <tr>
+                                            <td><span class="mono-badge">{{ s.student_id }}</span></td>
+                                            <td>{{ s.name }}</td>
+                                            <td>{{ s.internal_marks }}</td>
+                                            <td>{{ s.predicted_risk }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4 text-muted">
+                                Submit the range form to query students via the Binary Search Tree.
+                            </div>
+                        {% endif %}
+
+                        <div class="table-responsive mt-4">
+                            <table class="table table-bordered small mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Operation</th>
+                                        <th>Average Time</th>
+                                        <th>Worst Time (Skewed)</th>
+                                        <th>Space Complexity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Insert</td><td>O(log N)</td><td>O(N)</td><td>O(1)</td></tr>
+                                    <tr><td>Search (Key)</td><td>O(log N)</td><td>O(N)</td><td>O(1)</td></tr>
+                                    <tr><td>In-order Traversal</td><td>O(N)</td><td>O(N)</td><td>O(N)</td></tr>
+                                    <tr><td>Range Query</td><td>O(K + log N)</td><td>O(N)</td><td>O(K)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. STACK TAB -->
+    <div class="tab-pane fade" id="content-stack" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-12 col-lg-5">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark">LIFO Stack Mutation & Undo Engine</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted small">
+                            The Stack records mutations (CREATE, UPDATE, DELETE) and powers the functional <strong>Undo</strong> feature on the Students page.
+                        </p>
+                        <form method="POST" action="{{ url_for('dsa_demo_action', structure='stack') }}">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Push Test Action</label>
+                                <input type="text" name="action_name" class="form-control" value="TEST_INSPECT_OPERATION" required>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" name="op" value="push" class="btn btn-primary flex-grow-1">Push to Stack</button>
+                                <button type="submit" name="op" value="pop" class="btn btn-outline-danger">Pop (LIFO)</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark">Live Stack State (Top at Peak)</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="dsa-visualizer-box mb-3">
+                            <div class="text-info mb-2">// Stack Visualizer (Top -> Bottom):</div>
+                            {% if stack_history %}
+                                {% for item in stack_history %}
+                                    <div class="d-flex align-items-center justify-content-between p-2 mb-1 bg-dark bg-opacity-50 border border-secondary rounded">
+                                        <span><strong>[{{ item.action }}]</strong> {{ item.student_id or 'Demo' }}</span>
+                                        <small class="text-muted">{{ item.timestamp }}</small>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-muted">// Stack is currently empty.</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered small mb-0">
+                                <thead class="table-light"><tr><th>Operation</th><th>Time Complexity</th><th>Space Complexity</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Push</td><td>O(1)</td><td>O(1)</td></tr>
+                                    <tr><td>Pop</td><td>O(1)</td><td>O(1)</td></tr>
+                                    <tr><td>Peek</td><td>O(1)</td><td>O(1)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. QUEUE TAB -->
+    <div class="tab-pane fade" id="content-queue" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-12 col-lg-5">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark">FIFO Queue Prediction Buffer</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted small">
+                            Buffers incoming batch prediction requests and processes them sequentially in strict First-In, First-Out sequence.
+                        </p>
+                        <form method="POST" action="{{ url_for('dsa_demo_action', structure='queue') }}">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Enqueue Candidate Name</label>
+                                <input type="text" name="student_name" class="form-control" value="Queue Candidate #{{ queue_items|length + 1 }}" required>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" name="op" value="enqueue" class="btn btn-primary flex-grow-1">Enqueue (FIFO)</button>
+                                <button type="submit" name="op" value="process_all" class="btn btn-success">Process Batch</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0 text-dark">Current Queue Sequence (Front &rarr; Back)</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="dsa-visualizer-box mb-3">
+                            <div class="text-info mb-2">// Queue Buffer Length: {{ queue_items|length }}</div>
+                            {% if queue_items %}
+                                {% for item in queue_items %}
+                                    <div class="d-flex align-items-center justify-content-between p-2 mb-1 bg-dark bg-opacity-50 border border-secondary rounded">
+                                        <span><strong>#{{ loop.index }}</strong> {{ item.student_name or item.data.name }}</span>
+                                        <span class="badge bg-primary">Pending Dispatch</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-muted">// Queue is currently empty. Ready for new batch jobs.</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered small mb-0">
+                                <thead class="table-light"><tr><th>Operation</th><th>Time Complexity</th><th>Space Complexity</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Enqueue</td><td>O(1)</td><td>O(1)</td></tr>
+                                    <tr><td>Dequeue</td><td>O(1)</td><td>O(1)</td></tr>
+                                    <tr><td>Peek Front</td><td>O(1)</td><td>O(1)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. LINKED LIST TAB -->
+    <div class="tab-pane fade" id="content-linkedlist" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold mb-0 text-dark">Dynamic Singly Linked List Traversal</h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small">
+                    Represents dynamically linked student record pointers. Nodes point sequentially to the next memory address:
+                    <code>Head &rarr; Node1 &rarr; Node2 &rarr; ... &rarr; NULL</code>.
+                </p>
+                <div class="p-3 bg-light rounded-3 border mb-4" style="overflow-x: auto; white-space: nowrap;">
+                    {% if linked_list_nodes %}
+                        {% for n in linked_list_nodes[:8] %}
+                            <div class="dsa-node">
+                                <strong>{{ n.student_id }}</strong>: {{ n.name }}
+                            </div>
+                            <span class="dsa-node-arrow">&rarr;</span>
+                        {% endfor %}
+                        <span class="badge bg-dark">NULL</span>
+                    {% else %}
+                        <span class="text-muted">Empty Linked List</span>
+                    {% endif %}
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered small mb-0">
+                        <thead class="table-light"><tr><th>Operation</th><th>Time Complexity</th><th>Space Complexity</th></tr></thead>
+                        <tbody>
+                            <tr><td>Insert at Head</td><td>O(1)</td><td>O(1)</td></tr>
+                            <tr><td>Insert at Tail</td><td>O(N)</td><td>O(1)</td></tr>
+                            <tr><td>Search by Key</td><td>O(N)</td><td>O(1)</td></tr>
+                            <tr><td>Delete Node</td><td>O(N)</td><td>O(1)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. ARRAY & QUICKSORT TAB -->
+    <div class="tab-pane fade" id="content-array" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold mb-0 text-dark">Array Operations: Algorithmic QuickSort & Binary Search</h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small">
+                    Demonstrates divide-and-conquer QuickSort partitioning over contiguous student memory arrays with pivot selection and recursion.
+                </p>
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold">Contiguous Array Traversal</h6>
+                            <p class="small text-muted mb-0">Direct O(1) random index access via base memory address offset arithmetic.</p>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold">QuickSort Partitioning</h6>
+                            <p class="small text-muted mb-0">Lomuto / Hoare partition scheme with O(N log N) average execution performance.</p>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold">Binary Search by ID</h6>
+                            <p class="small text-muted mb-0">Halves search space each iteration: O(log N) lookup after sorting array.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered small mb-0">
+                        <thead class="table-light"><tr><th>Algorithm</th><th>Best Time</th><th>Average Time</th><th>Worst Time</th><th>Space</th></tr></thead>
+                        <tbody>
+                            <tr><td>QuickSort</td><td>O(N log N)</td><td>O(N log N)</td><td>O(N&sup2;)</td><td>O(log N)</td></tr>
+                            <tr><td>Binary Search</td><td>O(1)</td><td>O(log N)</td><td>O(log N)</td><td>O(1)</td></tr>
+                            <tr><td>Linear Filter</td><td>O(N)</td><td>O(N)</td><td>O(N)</td><td>O(K)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

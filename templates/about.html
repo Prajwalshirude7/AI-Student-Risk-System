@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}About Project & Documentation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="mb-4">
+            <h1 class="h3 fw-bold mb-1 text-dark">About the System & Architectural Specification</h1>
+            <p class="text-muted small mb-0">B.Tech Second-Year Mini-Project Integrating Data Structures & Algorithms, Machine Learning, Database Management, and Web Development.</p>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-body p-4 p-md-5">
+                <h4 class="fw-bold text-primary mb-3">Project Overview</h4>
+                <p class="text-secondary leading-relaxed">
+                    The <strong>AI-Based Student Performance & Risk Prediction System</strong> is an integrated educational intelligence portal developed to detect student scholastic vulnerability at an early stage. By blending classical <strong>Data Structures and Algorithms</strong> with <strong>Supervised Machine Learning</strong> and <strong>Persistent Database Engineering</strong>, the application equips academic mentors with real-time diagnostic insights and non-judgmental, actionable recommendations.
+                </p>
+
+                <hr class="my-4">
+
+                <h5 class="fw-bold text-dark mb-3">Mandatory College Data Structure Implementations</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-hash text-primary me-1"></i> Custom Hash Table</h6>
+                            <p class="small text-muted mb-1">
+                                Implemented with polynomial rolling hash, bucket separate chaining, and dynamic capacity doubling at load factor 0.75.
+                            </p>
+                            <span class="badge bg-white border text-dark">Lookup Complexity: O(1) avg</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-diagram-3 text-primary me-1"></i> Binary Search Tree (BST)</h6>
+                            <p class="small text-muted mb-1">
+                                Indexes student academic performance scores, enabling sorted In-order traversal and O(K + log N) Range Search.
+                            </p>
+                            <span class="badge bg-white border text-dark">Search Complexity: O(log N) avg</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-layers text-primary me-1"></i> Stack (LIFO)</h6>
+                            <p class="small text-muted mb-1">
+                                Records mutation snapshots (CREATE, UPDATE, DELETE) and powers the functional <strong>Undo Last Action</strong> feature.
+                            </p>
+                            <span class="badge bg-white border text-dark">Push / Pop: O(1)</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-distribute-vertical text-primary me-1"></i> Queue (FIFO)</h6>
+                            <p class="small text-muted mb-1">
+                                Buffers incoming student prediction tasks in arrival sequence for deterministic batch processing.
+                            </p>
+                            <span class="badge bg-white border text-dark">Enqueue / Dequeue: O(1)</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-link-45deg text-primary me-1"></i> Singly Linked List</h6>
+                            <p class="small text-muted mb-1">
+                                Implements dynamic memory allocation with sequential node pointers for dynamic student chains without fixed allocation.
+                            </p>
+                            <span class="badge bg-white border text-dark">Head Insertion: O(1)</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-sort-down text-primary me-1"></i> Array Operations</h6>
+                            <p class="small text-muted mb-1">
+                                Provides custom divide-and-conquer QuickSort, multi-field filtering, and O(log N) Binary Search on contiguous student arrays.
+                            </p>
+                            <span class="badge bg-white border text-dark">Sort Complexity: O(N log N)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h5 class="fw-bold text-dark mb-3">Machine Learning Pipeline</h5>
+                <ul class="text-secondary small leading-relaxed mb-4">
+                    <li><strong>Model Architecture:</strong> Scikit-learn <code>DecisionTreeClassifier</code> configured with maximum depth 6 to ensure interpretability and minimize overfitting.</li>
+                    <li><strong>Features:</strong> Attendance (%), Internal Assessment (/100), Assignment Marks (/100), Previous Academic % (/100), Study Hours (hrs/day), Backlogs (integer).</li>
+                    <li><strong>Evaluation Methodology:</strong> Stratified 80/20 Train-Test split, preventing target label distribution skew and eliminating data leakage.</li>
+                    <li><strong>Target Classes:</strong> Low Risk, Medium Risk, High Risk.</li>
+                </ul>
+
+                <hr class="my-4">
+
+                <h5 class="fw-bold text-dark mb-3">Hardware & Software Specifications</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered small mb-0">
+                        <thead class="table-light">
+                            <tr><th>Component</th><th>Technology / Requirement</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Operating System</td><td>Windows 10 / 11 (64-bit)</td></tr>
+                            <tr><td>Backend Language</td><td>Python 3.11 / 3.12 / 3.13</td></tr>
+                            <tr><td>Web Framework</td><td>Flask 3.x (WSGI)</td></tr>
+                            <tr><td>Database Engine</td><td>SQLite3 (Zero-configuration persistent SQL)</td></tr>
+                            <tr><td>Machine Learning</td><td>Scikit-Learn, Pandas, NumPy, Joblib</td></tr>
+                            <tr><td>Frontend Interface</td><td>HTML5, Vanilla CSS3, Bootstrap 5.3 CDN, Chart.js 4.4</td></tr>
+                            <tr><td>Test Framework</td><td>pytest</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="academic-disclaimer-box">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    <strong>Pedagogical Disclaimer:</strong> This project is created for undergraduate engineering academic demonstration. Synthetic dataset heuristic rules do not constitute empirical or clinical proof of institutional student performance.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Student Management{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-dark">Student Directory & Academic Records</h1>
+        <p class="text-muted small mb-0">Manage enrolled student profiles, inspect academic indicators, and track individual predicted risks.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <form action="{{ url_for('undo_action') }}" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-outline-dark d-flex align-items-center gap-2" title="Undo the most recent create, update, or delete operation via LIFO Stack">
+                <i class="bi bi-arrow-counterclockwise"></i> Undo Last Action
+            </button>
+        </form>
+        <a href="{{ url_for('create_student_page') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-person-plus-fill"></i> Add Student
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-3">
+        <form method="GET" action="{{ url_for('list_students') }}" class="row g-2 align-items-center">
+            <!-- Search Query -->
+            <div class="col-12 col-md-3">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Search name or ID..." value="{{ search_query }}">
+                </div>
+            </div>
+
+            <!-- Risk Filter -->
+            <div class="col-6 col-md-2">
+                <select name="risk" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="all" {% if current_risk == 'all' %}selected{% endif %}>All Risk Categories</option>
+                    <option value="Low Risk" {% if current_risk == 'Low Risk' %}selected{% endif %}>Low Risk</option>
+                    <option value="Medium Risk" {% if current_risk == 'Medium Risk' %}selected{% endif %}>Medium Risk</option>
+                    <option value="High Risk" {% if current_risk == 'High Risk' %}selected{% endif %}>High Risk</option>
+                    <option value="Not Predicted" {% if current_risk == 'Not Predicted' %}selected{% endif %}>Not Predicted</option>
+                </select>
+            </div>
+
+            <!-- Score Range Filter (BST Range Query) -->
+            <div class="col-6 col-md-3">
+                <select name="score_range" class="form-select form-select-sm" onchange="this.form.submit()" title="Indexed by in-memory Binary Search Tree">
+                    <option value="all" {% if not current_score_range or current_score_range == 'all' %}selected{% endif %}>All Score Ranges (BST)</option>
+                    <option value="below_40" {% if current_score_range == 'below_40' %}selected{% endif %}>Marks &lt; 40 (At Risk)</option>
+                    <option value="40_70" {% if current_score_range == '40_70' %}selected{% endif %}>Marks 40 - 70 (Average)</option>
+                    <option value="above_70" {% if current_score_range == 'above_70' %}selected{% endif %}>Marks &gt; 70 (High)</option>
+                </select>
+            </div>
+
+            <!-- Sort Field (QuickSort) -->
+            <div class="col-6 col-md-2">
+                <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()" title="Sorted via Algorithmic QuickSort">
+                    <option value="id" {% if current_sort == 'id' %}selected{% endif %}>Sort by ID</option>
+                    <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Sort by Name</option>
+                    <option value="attendance" {% if current_sort == 'attendance' %}selected{% endif %}>Sort by Attendance</option>
+                    <option value="internal_marks" {% if current_sort == 'internal_marks' %}selected{% endif %}>Sort by Internals</option>
+                    <option value="failed_subjects" {% if current_sort == 'failed_subjects' %}selected{% endif %}>Sort by Backlogs</option>
+                </select>
+            </div>
+
+            <!-- Submit & Reset Buttons -->
+            <div class="col-6 col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-secondary w-100">Filter</button>
+                <a href="{{ url_for('list_students') }}" class="btn btn-sm btn-outline-secondary" title="Reset Filters"><i class="bi bi-arrow-repeat"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Student Table Card -->
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark">
+            Enrolled Students <span class="badge bg-primary bg-opacity-10 text-primary ms-1">{{ students|length }} records</span>
+        </h6>
+        <span class="text-muted small">Fast O(N log N) QuickSort & O(N) Array Filtered</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table custom-table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Attendance</th>
+                        <th>Internal Marks</th>
+                        <th>Assignments</th>
+                        <th>Study Hrs</th>
+                        <th>Backlogs</th>
+                        <th>Predicted Risk</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if students %}
+                        {% for s in students %}
+                        <tr>
+                            <td>
+                                <span class="mono-badge fw-bold">{{ s.student_id }}</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('view_student', student_id=s.student_id) }}" class="fw-semibold text-primary text-decoration-none">
+                                    {{ s.name }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="{% if s.attendance < 75.0 %}text-danger fw-bold{% else %}text-dark{% endif %}">
+                                    {{ s.attendance }}%
+                                </span>
+                            </td>
+                            <td>{{ s.internal_marks }}/100</td>
+                            <td>{{ s.assignment_marks }}/100</td>
+                            <td>{{ s.study_hours }} h/day</td>
+                            <td>
+                                {% if s.failed_subjects > 0 %}
+                                    <span class="badge bg-danger rounded-pill">{{ s.failed_subjects }}</span>
+                                {% else %}
+                                    <span class="badge bg-light text-secondary">0</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if s.predicted_risk == 'High Risk' %}
+                                    <span class="risk-badge risk-badge-high"><i class="bi bi-exclamation-octagon"></i> High</span>
+                                {% elif s.predicted_risk == 'Medium Risk' %}
+                                    <span class="risk-badge risk-badge-medium"><i class="bi bi-exclamation-triangle"></i> Medium</span>
+                                {% elif s.predicted_risk == 'Low Risk' %}
+                                    <span class="risk-badge risk-badge-low"><i class="bi bi-check2"></i> Low</span>
+                                {% else %}
+                                    <span class="risk-badge risk-badge-none">Not Run</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('view_student', student_id=s.student_id) }}" class="btn btn-light border" title="Inspect Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('edit_student_page', student_id=s.student_id) }}" class="btn btn-light border text-primary" title="Edit Record">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form action="{{ url_for('delete_student_action', student_id=s.student_id) }}" method="POST" class="d-inline form-delete-confirm" data-student-id="{{ s.student_id }}">
+                                        <button type="submit" class="btn btn-light border text-danger" title="Delete Record">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="bi bi-person-x fs-1 d-block mb-2 text-secondary"></i>
+                                <h6 class="fw-semibold">No students found</h6>
+                                <p class="small mb-3">No student records match your active query or filter criteria.</p>
+                                <a href="{{ url_for('create_student_page') }}" class="btn btn-sm btn-primary">Add New Student</a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}Academic Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-dark">Academic Performance & Risk Dashboard</h1>
+        <p class="text-muted small mb-0">Live diagnostic metrics and AI predictive alerts computed from student database.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('predict_page') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-cpu"></i> New Risk Assessment
+        </a>
+        <a href="{{ url_for('create_student_page') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+            <i class="bi bi-person-plus"></i> Enroll Student
+        </a>
+    </div>
+</div>
+
+<!-- Key Stat Cards -->
+<div class="row g-3 mb-4">
+    <!-- Total Students -->
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Total Students</div>
+                    <div class="h3 fw-bold mb-0 text-dark mt-1">{{ stats.total_students }}</div>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+            <div class="text-muted small mt-2">Active database records</div>
+        </div>
+    </div>
+
+    <!-- Low Risk -->
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase text-success">Low Risk</div>
+                    <div class="h3 fw-bold mb-0 text-success mt-1">{{ stats.low_risk }}</div>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+            </div>
+            <div class="text-muted small mt-2">Satisfactory progress</div>
+        </div>
+    </div>
+
+    <!-- Medium Risk -->
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase text-warning">Medium Risk</div>
+                    <div class="h3 fw-bold mb-0 text-warning mt-1">{{ stats.medium_risk }}</div>
+                </div>
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+            </div>
+            <div class="text-muted small mt-2">Needs mild monitoring</div>
+        </div>
+    </div>
+
+    <!-- High Risk -->
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase text-danger">High Risk</div>
+                    <div class="h3 fw-bold mb-0 text-danger mt-1">{{ stats.high_risk }}</div>
+                </div>
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+            </div>
+            <div class="text-muted small mt-2">Priority intervention</div>
+        </div>
+    </div>
+
+    <!-- Average Attendance -->
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Avg Attendance</div>
+                    <div class="h3 fw-bold mb-0 text-dark mt-1">{{ stats.avg_attendance }}%</div>
+                </div>
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+            </div>
+            <div class="text-muted small mt-2">Target benchmark: 75%</div>
+        </div>
+    </div>
+
+    <!-- Average Internals -->
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Avg Internals</div>
+                    <div class="h3 fw-bold mb-0 text-dark mt-1">{{ stats.avg_internal_marks }}</div>
+                </div>
+                <div class="stat-icon bg-purple bg-opacity-10 text-indigo" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                    <i class="bi bi-pencil-square"></i>
+                </div>
+            </div>
+            <div class="text-muted small mt-2">Out of 100 max score</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-4">
+    <!-- Risk Distribution Doughnut -->
+    <div class="col-12 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="card-title fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-pie-chart-fill text-primary"></i> Academic Risk Distribution
+                </h5>
+            </div>
+            <div class="card-body d-flex flex-column align-items-center justify-content-center p-4">
+                <div style="position: relative; height: 260px; width: 100%; max-width: 300px;">
+                    <canvas id="riskDoughnutChart"></canvas>
+                </div>
+                <div class="d-flex justify-content-center gap-3 mt-3 small text-muted">
+                    <span><i class="bi bi-circle-fill text-success"></i> Low ({{ stats.low_risk }})</span>
+                    <span><i class="bi bi-circle-fill text-warning"></i> Medium ({{ stats.medium_risk }})</span>
+                    <span><i class="bi bi-circle-fill text-danger"></i> High ({{ stats.high_risk }})</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Academic Averages Bar Chart -->
+    <div class="col-12 col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="card-title fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-graph-up text-primary"></i> Cohort Academic Performance Benchmarks
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="academicMetricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Students Requiring Support & Recent Predictions -->
+<div class="row g-4">
+    <!-- Priority Support Table -->
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-flag-fill text-danger"></i> Students Recommended for Mentorship Support
+                </h5>
+                <a href="{{ url_for('list_students', risk='High Risk') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table custom-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Attendance</th>
+                                <th>Internals</th>
+                                <th>Backlogs</th>
+                                <th>Risk Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if stats.at_risk_students %}
+                                {% for s in stats.at_risk_students %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ s.name }}</div>
+                                        <span class="mono-badge">{{ s.student_id }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="{% if s.attendance < 75.0 %}text-danger fw-bold{% else %}text-dark{% endif %}">
+                                            {{ s.attendance }}%
+                                        </span>
+                                    </td>
+                                    <td>{{ s.internal_marks }}/100</td>
+                                    <td>
+                                        {% if s.failed_subjects > 0 %}
+                                            <span class="badge bg-danger rounded-pill">{{ s.failed_subjects }} Fail</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-secondary">0</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if s.predicted_risk == 'High Risk' %}
+                                            <span class="risk-badge risk-badge-high"><i class="bi bi-exclamation-octagon"></i> High</span>
+                                        {% elif s.predicted_risk == 'Medium Risk' %}
+                                            <span class="risk-badge risk-badge-medium"><i class="bi bi-exclamation-triangle"></i> Medium</span>
+                                        {% elif s.predicted_risk == 'Low Risk' %}
+                                            <span class="risk-badge risk-badge-low"><i class="bi bi-check2"></i> Low</span>
+                                        {% else %}
+                                            <span class="risk-badge risk-badge-none">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('view_student', student_id=s.student_id) }}" class="btn btn-sm btn-light border" title="View Profile">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        <i class="bi bi-clipboard-check fs-2 text-success d-block mb-1"></i>
+                                        No students currently flagged with high academic risk.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Prediction Activity -->
+    <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-primary"></i> Recent Prediction Log
+                </h5>
+                <a href="{{ url_for('prediction_history') }}" class="btn btn-sm btn-outline-primary">History</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table custom-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Predicted Risk</th>
+                                <th>Confidence</th>
+                                <th>Logged At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if stats.recent_predictions %}
+                                {% for p in stats.recent_predictions %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ p.student_name }}</div>
+                                        <span class="mono-badge">{{ p.student_id }}</span>
+                                    </td>
+                                    <td>
+                                        {% if p.predicted_risk == 'High Risk' %}
+                                            <span class="risk-badge risk-badge-high">High</span>
+                                        {% elif p.predicted_risk == 'Medium Risk' %}
+                                            <span class="risk-badge risk-badge-medium">Medium</span>
+                                        {% else %}
+                                            <span class="risk-badge risk-badge-low">Low</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ (p.confidence_score * 100)|round(1) }}%</td>
+                                    <td class="text-muted small">{{ p.created_at.split(' ')[0] }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        No recent predictions logged yet.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Risk Doughnut Chart
+    const ctxRisk = document.getElementById('riskDoughnutChart');
+    if (ctxRisk) {
+        new Chart(ctxRisk, {
+            type: 'doughnut',
+            data: {
+                labels: ['Low Risk', 'Medium Risk', 'High Risk', 'Pending'],
+                datasets: [{
+                    data: [
+                        {{ stats.low_risk }},
+                        {{ stats.medium_risk }},
+                        {{ stats.high_risk }},
+                        {{ stats.unpredicted }}
+                    ],
+                    backgroundColor: [
+                        '#10b981', // green
+                        '#f59e0b', // amber
+                        '#ef4444', // red
+                        '#cbd5e1'  // slate
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    // 2. Academic Metrics Bar Chart
+    const ctxMetrics = document.getElementById('academicMetricsChart');
+    if (ctxMetrics) {
+        new Chart(ctxMetrics, {
+            type: 'bar',
+            data: {
+                labels: ['Avg Attendance (%)', 'Avg Internal Marks (/100)', 'Avg Assignments (/100)'],
+                datasets: [{
+                    label: 'Class Cohort Average',
+                    data: [
+                        {{ stats.avg_attendance }},
+                        {{ stats.avg_internal_marks }},
+                        {{ stats.avg_assignment_marks }}
+                    ],
+                    backgroundColor: [
+                        'rgba(37, 99, 235, 0.85)',
+                        'rgba(99, 102, 241, 0.85)',
+                        'rgba(20, 184, 166, 0.85)'
+                    ],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) { return value; }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

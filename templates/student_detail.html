@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile - {{ student.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <a href="{{ url_for('list_students') }}" class="text-decoration-none small text-muted d-inline-flex align-items-center gap-1 mb-1">
+            <i class="bi bi-arrow-left"></i> Back to Student Directory
+        </a>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h1 class="h3 fw-bold mb-0 text-dark">{{ student.name }}</h1>
+            <span class="mono-badge fs-6">{{ student.student_id }}</span>
+            {% if cache_hit %}
+                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1" style="font-size: 0.75rem;" title="Retrieved instantly from custom Hash Table in-memory cache in {{ lookup_ms }} ms">
+                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i> L1 Cache Hit ({{ lookup_ms }}ms)
+                </span>
+            {% else %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1" style="font-size: 0.75rem;" title="Retrieved from SQLite database on disk">
+                    <i class="bi bi-database me-1"></i> DB Disk ({{ lookup_ms }}ms)
+                </span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <form action="{{ url_for('predict_student_record', student_id=student.student_id) }}" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+                <i class="bi bi-lightning-charge-fill"></i> Evaluate Risk with AI
+            </button>
+        </form>
+        <a href="{{ url_for('edit_student_page', student_id=student.student_id) }}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+        <form action="{{ url_for('delete_student_action', student_id=student.student_id) }}" method="POST" class="d-inline form-delete-confirm" data-student-id="{{ student.student_id }}">
+            <button type="submit" class="btn btn-outline-danger" title="Delete record">
+                <i class="bi bi-trash"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Diagnostic & Risk Status -->
+    <div class="col-12 col-lg-5">
+        <!-- AI Risk Card -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="card-title fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-cpu-fill text-primary"></i> Academic Risk Evaluation
+                </h5>
+            </div>
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    {% if student.predicted_risk == 'High Risk' %}
+                        <div class="display-6 fw-bold text-danger mb-1">High Risk</div>
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Priority Academic Intervention Required
+                        </span>
+                    {% elif student.predicted_risk == 'Medium Risk' %}
+                        <div class="display-6 fw-bold text-warning mb-1">Medium Risk</div>
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 rounded-pill">
+                            <i class="bi bi-shield-exclamation me-1"></i> Moderate Monitoring Advised
+                        </span>
+                    {% elif student.predicted_risk == 'Low Risk' %}
+                        <div class="display-6 fw-bold text-success mb-1">Low Risk</div>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill">
+                            <i class="bi bi-shield-check me-1"></i> Satisfactory Academic Progression
+                        </span>
+                    {% else %}
+                        <div class="display-6 fw-bold text-secondary mb-1">Not Evaluated</div>
+                        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill">
+                            Pending Initial ML Evaluation
+                        </span>
+                    {% endif %}
+                </div>
+
+                {% if student.risk_probability and student.risk_probability > 0 %}
+                    <div class="p-3 bg-light rounded-3 text-start mt-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Model Prediction Confidence</span>
+                            <strong>{{ (student.risk_probability * 100)|round(1) }}%</strong>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar {% if student.predicted_risk == 'High Risk' %}bg-danger{% elif student.predicted_risk == 'Medium Risk' %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ (student.risk_probability * 100)|round(1) }}%;"></div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <p class="small text-muted mt-3 mb-0">
+                    <i class="bi bi-info-circle me-1"></i> Evaluated via Scikit-Learn Decision Tree Classifier based on attendance, internals, assignments, study hours, and backlogs.
+                </p>
+            </div>
+        </div>
+
+        <!-- Metadata Card -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="fw-bold mb-0 text-dark">Audit & Record Timestamps</h6>
+            </div>
+            <div class="card-body p-3 small">
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Record Created:</span>
+                    <span class="fw-semibold text-dark">{{ student.created_at }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Last Updated:</span>
+                    <span class="fw-semibold text-dark">{{ student.updated_at }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted">Storage Engine:</span>
+                    <span class="mono-badge">SQLite Persistent</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Academic Breakdown & Recommendations -->
+    <div class="col-12 col-lg-7">
+        <!-- Academic Performance Breakdown -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="card-title fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-speedometer2 text-primary"></i> Academic Indicators Breakdown
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <!-- Attendance -->
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted">Attendance</span>
+                                <span class="fw-bold {% if student.attendance < 75.0 %}text-danger{% else %}text-success{% endif %} fs-5">
+                                    {{ student.attendance }}%
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar {% if student.attendance < 75.0 %}bg-danger{% else %}bg-success{% endif %}" style="width: {{ student.attendance }}%;"></div>
+                            </div>
+                            <small class="text-muted d-block mt-1">{% if student.attendance < 75.0 %}Shortage (< 75%){% else %}Eligible (&ge; 75%){% endif %}</small>
+                        </div>
+                    </div>
+
+                    <!-- Internal Marks -->
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted">Internal Marks</span>
+                                <span class="fw-bold text-primary fs-5">{{ student.internal_marks }}/100</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-primary" style="width: {{ student.internal_marks }}%;"></div>
+                            </div>
+                            <small class="text-muted d-block mt-1">Continuous assessment score</small>
+                        </div>
+                    </div>
+
+                    <!-- Assignment Marks -->
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted">Assignment Marks</span>
+                                <span class="fw-bold text-dark fs-5">{{ student.assignment_marks }}/100</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-info" style="width: {{ student.assignment_marks }}%;"></div>
+                            </div>
+                            <small class="text-muted d-block mt-1">Coursework completion</small>
+                        </div>
+                    </div>
+
+                    <!-- Previous Percentage -->
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted">Previous Percentage</span>
+                                <span class="fw-bold text-dark fs-5">{{ student.previous_percentage }}%</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-secondary" style="width: {{ student.previous_percentage }}%;"></div>
+                            </div>
+                            <small class="text-muted d-block mt-1">Prior academic baseline</small>
+                        </div>
+                    </div>
+
+                    <!-- Study Hours -->
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted">Self Study Hours</span>
+                                <span class="fw-bold text-dark fs-5">{{ student.study_hours }} h/day</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">Recommended target: 3 - 4 hrs/day</small>
+                        </div>
+                    </div>
+
+                    <!-- Failed Subjects -->
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted">Pending Backlogs</span>
+                                <span class="fw-bold {% if student.failed_subjects > 0 %}text-danger{% else %}text-success{% endif %} fs-5">
+                                    {{ student.failed_subjects }}
+                                </span>
+                            </div>
+                            <small class="text-muted d-block mt-1">Active backlog subjects needing remediation</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Recommendations -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="card-title fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-lightbulb-fill text-warning"></i> Actionable Mentorship Recommendations
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                {% if recommendations %}
+                    <ul class="recommendation-list mb-0">
+                        {% for rec in recommendations %}
+                            <li>{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted small mb-0">
+                        Click <strong>Evaluate Risk with AI</strong> above to generate tailored academic guidance based on current parameters.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

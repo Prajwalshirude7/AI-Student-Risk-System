@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}AI Student Academic Risk Predictor{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="mb-4">
+            <h1 class="h3 fw-bold mb-1 text-dark">AI-Based Student Academic Risk Predictor</h1>
+            <p class="text-muted small mb-0">Evaluate student scholastic vulnerability using a trained Decision Tree Classifier with calibrated multiclass probabilities.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left: Input Form -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="card-title fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                            <i class="bi bi-sliders text-primary"></i> Academic Indicators Input
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ url_for('predict_page') }}">
+                            <!-- Student Identifier (Optional) -->
+                            <div class="mb-3">
+                                <label for="student_name" class="form-label fw-semibold">Student Name / Identifier (Optional)</label>
+                                <input type="text" class="form-control" id="student_name" name="student_name" placeholder="e.g. Aditi Rao" value="{{ form_data.student_name if form_data else '' }}">
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <!-- Attendance -->
+                                <div class="col-12 col-sm-6">
+                                    <label for="attendance" class="form-label fw-semibold">Attendance (%) <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="attendance" name="attendance" required placeholder="0.0 - 100.0" value="{{ form_data.attendance if form_data else '75.0' }}">
+                                </div>
+
+                                <!-- Internal Marks -->
+                                <div class="col-12 col-sm-6">
+                                    <label for="internal_marks" class="form-label fw-semibold">Internal Marks (/100) <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="internal_marks" name="internal_marks" required placeholder="0.0 - 100.0" value="{{ form_data.internal_marks if form_data else '60.0' }}">
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <!-- Assignment Marks -->
+                                <div class="col-12 col-sm-6">
+                                    <label for="assignment_marks" class="form-label fw-semibold">Assignment Marks (/100) <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="assignment_marks" name="assignment_marks" required placeholder="0.0 - 100.0" value="{{ form_data.assignment_marks if form_data else '65.0' }}">
+                                </div>
+
+                                <!-- Previous Percentage -->
+                                <div class="col-12 col-sm-6">
+                                    <label for="previous_percentage" class="form-label fw-semibold">Prior Academic % <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="previous_percentage" name="previous_percentage" required placeholder="0.0 - 100.0" value="{{ form_data.previous_percentage if form_data else '70.0' }}">
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <!-- Daily Study Hours -->
+                                <div class="col-12 col-sm-6">
+                                    <label for="study_hours" class="form-label fw-semibold">Daily Study Hours <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.1" min="0" max="24" class="form-control" id="study_hours" name="study_hours" required placeholder="0.0 - 24.0" value="{{ form_data.study_hours if form_data else '3.0' }}">
+                                </div>
+
+                                <!-- Failed Subjects -->
+                                <div class="col-12 col-sm-6">
+                                    <label for="failed_subjects" class="form-label fw-semibold">Pending Backlogs <span class="text-danger">*</span></label>
+                                    <input type="number" min="0" max="20" class="form-control" id="failed_subjects" name="failed_subjects" required placeholder="0 or higher" value="{{ form_data.failed_subjects if form_data else '0' }}">
+                                </div>
+                            </div>
+
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" value="1" id="save_to_db" name="save_to_db" checked>
+                                <label class="form-check-label small text-muted" for="save_to_db">
+                                    Record this diagnostic query into the persistent SQLite predictions audit log.
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                                <i class="bi bi-cpu-fill"></i> Execute AI Risk Inference
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Results & Recommendations -->
+            <div class="col-12 col-lg-6">
+                {% if prediction_result %}
+                    <div class="card border-0 shadow-sm rounded-3 h-100">
+                        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                                <i class="bi bi-graph-up-arrow text-primary"></i> Diagnostic Result
+                            </h5>
+                            <span class="badge bg-light text-secondary border">Decision Tree Model</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Predicted Class Banner -->
+                            <div class="text-center p-3 rounded-3 mb-4 {% if prediction_result.predicted_risk == 'High Risk' %}bg-danger bg-opacity-10 text-danger border border-danger{% elif prediction_result.predicted_risk == 'Medium Risk' %}bg-warning bg-opacity-10 text-warning border border-warning{% else %}bg-success bg-opacity-10 text-success border border-success{% endif %}">
+                                <span class="text-uppercase fw-bold small d-block mb-1">Predicted Category</span>
+                                <h2 class="display-6 fw-bold mb-1">{{ prediction_result.predicted_risk }}</h2>
+                                <span class="small">Confidence Score: <strong>{{ (prediction_result.confidence_score * 100)|round(1) }}%</strong></span>
+                            </div>
+
+                            <!-- Class Probabilities -->
+                            <h6 class="fw-bold text-dark mb-2">Model Estimated Probabilities</h6>
+                            <div class="mb-4">
+                                {% for cls_name, prob in prediction_result.probabilities.items() %}
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>{{ cls_name }}</span>
+                                            <span><strong>{{ (prob * 100)|round(1) }}%</strong></span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar {% if cls_name == 'High Risk' %}bg-danger{% elif cls_name == 'Medium Risk' %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ (prob * 100)|round(1) }}%;"></div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Key Contributing Indicators -->
+                            {% if prediction_result.contributing_indicators %}
+                                <h6 class="fw-bold text-dark mb-2">Key Contributing Factors</h6>
+                                <ul class="list-unstyled mb-4 small text-danger">
+                                    {% for ind in prediction_result.contributing_indicators %}
+                                        <li class="mb-1"><i class="bi bi-exclamation-circle me-1"></i> {{ ind }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+
+                            <!-- Actionable Recommendations -->
+                            <h6 class="fw-bold text-dark mb-2">Constructive Educational Guidance</h6>
+                            <ul class="recommendation-list mb-4">
+                                {% for rec in prediction_result.recommendations %}
+                                    <li>{{ rec }}</li>
+                                {% endfor %}
+                            </ul>
+
+                            <!-- Pedagogical Disclaimer Notice -->
+                            <div class="academic-disclaimer-box">
+                                <i class="bi bi-info-circle-fill me-1"></i>
+                                <strong>Ethical Disclaimer:</strong> Model-estimated class probabilities reflect statistical pattern recognition over synthetic training heuristics. They do not constitute a certainty of academic failure nor an absolute clinical diagnosis.
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Placeholder State before inference -->
+                    <div class="card border-0 shadow-sm rounded-3 h-100 bg-white">
+                        <div class="card-body p-5 d-flex flex-column align-items-center justify-content-center text-center">
+                            <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-3" style="width: 64px; height: 64px; font-size: 2rem;">
+                                <i class="bi bi-cpu"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Ready for Evaluation</h5>
+                            <p class="text-muted small mb-4" style="max-width: 320px;">
+                                Fill in student academic metrics on the left form and click "Execute AI Risk Inference" to generate multi-class probability scores and guidance.
+                            </p>
+                            <div class="p-3 bg-light rounded-3 text-start small border w-100">
+                                <strong>Inference Pipeline Details:</strong>
+                                <ul class="mb-0 ps-3 mt-1 text-muted">
+                                    <li>Input: Attendance, Internals, Assignments, Prior %, Study Hrs, Backlogs</li>
+                                    <li>Classifier: Scikit-learn DecisionTreeClassifier</li>
+                                    <li>Outputs: Risk Category, Probabilities, Recommendations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Database (keep sample or local instances uncommitted if private)
+*.sqlite3
+database/test_*.db
+
+# ML artifacts (optional, keep reproducible via scripts)
+ml/models/*.pkl
+ml/models/*.json
+ml/dataset/*.csv
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
